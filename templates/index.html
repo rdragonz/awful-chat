@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Awful Chat</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<style>
+			@media screen and (max-width: 768px) {
+				body{
+					font-size: 50pt;
+				}
+				.messagebox{
+					line-height: 20pt;
+					padding: 12px;
+					font-size: 50pt;
+				}
+				.sendbutton{
+					height: 20pt;
+					font-size: 50pt;
+				}
+			}
+			body{
+				font-size: 30pt;
+			}
+		</style>
+
+		<script>
+			
+		  	function loadHistory(){
+		  		if(typeof(EventSource)!=="undefined") {
+					//create an object, passing it the name and location of the server side script
+					var source = new EventSource("/stream");
+					//detect message receipt
+					source.onmessage = function(e) {
+				    	document.getElementById("contentPage").innerHTML += event.data + "<br>";
+				    	$('html, body').animate({ 
+   							scrollTop: $(document).height()}, 
+						   10, 
+						   "linear"
+						);
+
+					};
+					$.ajax("/chat_history",{
+    				success: function(response) {
+        				$("#contentPage").html(response);
+  						$('html, body').animate({ 
+   							scrollTop: $(document).height()}, 
+						   10, 
+						   "linear"
+						);	    				
+        			}
+  				}); 
+				}	
+  				
+  				else {
+					document.getElementById("main").innerHTML="Uh oh! Looks like your browser doesn't support this feature! It's either disabled, or you're using Microsoft Edge! Try Chrome instead!";
+				}
+
+
+
+  			}
+
+		  	function sendMessage(){
+				$.ajax({url: '/post', type: 'POST', contentType: "multipart/form-data", data: {'message': document.getElementById("messagebox").value}});
+				document.getElementById("messagebox").value = "";
+				
+  			}
+		</script>
+	</head>
+	<body onload="loadHistory();" id="main">
+		<div id="contentPage" style="width: 100%; height: 100%; overflow-x: wrap; overflow-wrap: break-word; overflow-y:visible;">
+
+		</div>
+		<div style="position: absolute; bottom: 2px; height: 6%; width: 100%; display: inline-block; position: sticky; position: -webkit-sticky; background-color: #ffffff;">
+			<input type="text" id="messagebox" size="100%" name="message" class="messagebox" placeholder="Type a message..." style="width: 90%; float: left;">
+			<input type="button" onclick="sendMessage();  return false;" id='send' class="sendbutton" value="Send" style="width: 9%; float: right;">
+		</div>
+	</body>
+</html>
